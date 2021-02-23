@@ -5,6 +5,10 @@ import Form from './components/Form/Form';
 import shortid from 'shortid';
 import Input from './components/Input/Input';
 import Container from './components/Container/Container';
+import { CSSTransition } from 'react-transition-group';
+import fadeFindContacts from './fadeFindContacts.module.css';
+import fadeNotification from './fadeNotification.module.css';
+import Notification from './components/Notification';
 
 class App extends Component {
   state = {
@@ -15,6 +19,8 @@ class App extends Component {
       { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
     ],
     filter: '',
+    messsage: '',
+    alert: null
   };
 
    componentDidMount() {
@@ -47,11 +53,19 @@ class App extends Component {
     };
 
     if (newContact.name === '') {
-      alert('Please enter contact name');
+      // alert('Please enter contact name');
+      this.setState({ message: 'Please enter contact name!', alert: true })
+      setTimeout(() => {
+        this.setState({ alert: false })
+      }, 3000)
       return;
     }
     if (newContact.number === '') {
-      alert('Please enter contact phone number');
+      // alert('Please enter contact phone number');
+      this.setState({ message: 'Please enter contact phone number!', alert: true })
+      setTimeout(() => {
+        this.setState({ alert: false })
+      }, 3000)
       return;
     }
 
@@ -59,11 +73,17 @@ class App extends Component {
       contact => contact.name === newContact.name,
     );
 
-    hasContact
-      ? alert(`${newContact.name} is already in contacts`)
-      : this.setState(prevState => ({
-          contacts: [...prevState.contacts, newContact],
-        }));
+    if (hasContact) {
+      // alert(`${newContact.name} is already in contacts`)
+      this.setState({ message: `${newContact.name} is already in contacts!`, alert: true })
+      setTimeout(() => {
+        this.setState({ alert: false })
+      }, 3000)
+    } else {
+      this.setState(prevState => ({
+        contacts: [...prevState.contacts, newContact],
+      }));
+    }
   };
 
   handleFindChange = event => {
@@ -80,18 +100,23 @@ class App extends Component {
   };
 
   render() {
-    const { filter, contacts } = this.state;
+    const { filter, contacts, message, alert } = this.state;
 
     const visibleContacts = this.getVisibleContacts();
 
     return (
       <>
         <Section title="PhoneBook" appear={true} styles="phonebook">
+          <CSSTransition in={alert} timeout={1000} classNames={fadeNotification} unmountOnExit>
+            <Notification text={message} color="red"/>
+          </CSSTransition>
           <Form Submit={this.handleSubmitForm} />
         </Section>
-
+    
         <Section title="Contacts" >
-          {contacts.length > 1 ? (
+          
+           
+          <CSSTransition in={contacts.length > 1} timeout={250} classNames={fadeFindContacts} unmountOnExit>
             <Container>
               <Input
                 label="Find contacts by name"
@@ -102,10 +127,9 @@ class App extends Component {
                 placeholder="Find..."
                 onChange={this.handleFindChange}
               />
-            </Container>
-          ) : (
-            false
-          )}
+              </Container>
+            </CSSTransition>
+          
 
           {contacts.length === 0 ? (
             <span style={{ display: 'block', textAlign: 'center' }}>
